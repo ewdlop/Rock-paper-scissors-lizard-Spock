@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>剪刀石頭布蜥蜴史波克 - 線上對戰</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-style: italic;
+        }
+
+        .online-badge {
+            background: #28a745;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+
+        .menu-screen, .lobby-screen, .game-screen {
+            display: none;
+        }
+
+        .menu-screen.active, .lobby-screen.active, .game-screen.active {
+            display: block;
+        }
+
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+
+        .menu-btn, .action-btn {
+            background: linear-gradient(145deg, #007bff, #0056b3);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+        }
+
+        .menu-btn:hover, .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+        }
+
+        .create-room-btn {
+            background: linear-gradient(145deg, #28a745, #1e7e34);
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+        }
+
+        .join-room-btn {
+            background: linear-gradient(145deg, #ffc107, #e0a800);
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);
+        }
+
+        .room-input {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1.1em;
+            width: 100%;
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        .room-code {
+            background: #f8f9fa;
+            border: 2px solid #007bff;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #007bff;
+            margin: 20px 0;
+            letter-spacing: 2px;
+        }
+
+        .player-info {
+            display: flex;
+            justify-content: space-between;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .player-card {
+            flex: 1;
+            text-align: center;
+            padding: 15px;
+            margin: 0 10px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .player-card.you {
+            border: 3px solid #007bff;
+        }
+
+        .player-card.opponent {
+            border: 3px solid #dc3545;
+        }
+
+        .status {
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+
+        .status.waiting {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status.ready {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.playing {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        .choices {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .choice-btn {
+            background: linear-gradient(145deg, #ffffff, #e6e6e6);
+            border: none;
+            border-radius: 15px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+            min-width: 120px;
+        }
+
+        .choice-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 25px rgba(0, 0, 0, 0.2);
+            background: linear-gradient(145deg, #f8f9fa, #dee2e6);
+        }
+
+        .choice-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .choice-emoji {
+            font-size: 3em;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .choice-name {
+            font-weight: bold;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .round-display {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin: 20px 0;
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+        }
+
+        .player-choice, .opponent-choice {
+            text-align: center;
+            flex: 1;
+        }
+
+        .vs {
+            font-size: 2em;
+            font-weight: bold;
+            color: #666;
+            margin: 0 20px;
+        }
+
+        .choice-display {
+            font-size: 4em;
+            margin: 10px 0;
+        }
+
+        .choice-label {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .result-text {
+            font-size: 1.8em;
+            font-weight: bold;
+            margin: 20px 0;
+            padding: 15px 30px;
+            border-radius: 10px;
+        }
+
+        .win {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+
+        .lose {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+
+        .tie {
+            background: #fff3cd;
+            color: #856404;
+            border: 2px solid #ffeaa7;
+        }
+
+        .waiting-choice {
+            color: #999;
+            font-style: italic;
+        }
+
+        .back-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px;
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+
+        .countdown {
+            font-size: 3em;
+            font-weight: bold;
+            color: #dc3545;
+            margin: 20px 0;
+        }
+
+        .copy-btn {
+            background: #17a2b8;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px;
+            font-size: 0.9em;
+        }
+
+        .explanation {
+            margin-top: 15px;
+            font-style: italic;
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        @media (max-width: 768px) {
+            .choices {
+                gap: 10px;
+            }
+            
+            .choice-btn {
+                min-width: 90px;
+                padding: 15px;
+            }
+            
+            .choice-emoji {
+                font-size: 2.5em;
+            }
+            
+            .round-display {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .vs {
+                margin: 0;
+            }
+
+            .player-info {
+                flex-direction: column;
+            }
+
+            .player-card {
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>剪刀石頭布蜥蜴史波克</h1>
+        <p class="subtitle">線上即時對戰版本</p>
+        <div class="online-badge">🌐 線上多人對戰</div>
+
+        <!-- 主選單 -->
+        <div class="menu-screen active" id="menuScreen">
+            <div class="menu-buttons">
+                <button class="menu-btn create-room-btn" onclick="createRoom()">
+                    🏠 創建房間
+                </button>
+                <button class="menu-btn join-room-btn" onclick="showJoinRoom()">
+                    🚪 加入房間
+                </button>
+                <div id="joinRoomDiv" style="display: none; margin-top: 20px;">
+                    <input type="text" class="room-input" id="roomCodeInput" placeholder="輸入房間代碼" maxlength="6">
+                    <button class="action-btn" onclick="joinRoom()">加入遊戲</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 等候室 -->
+        <div class="lobby-screen" id="lobbyScreen">
+            <button class="back-btn" onclick="backToMenu()">← 返回</button>
+            
+            <div class="room-code" id="roomCodeDisplay">
+                房間代碼: <span id="roomCode"></span>
+                <button class="copy-btn" onclick="copyRoomCode()">複製</button>
+            </div>
+
+            <div class="player-info" id="playerInfo">
+                <div class="player-card you">
+                    <h3>你</h3>
+                    <div class="status ready">準備就緒</div>
+                </div>
+                <div class="player-card opponent">
+                    <h3>對手</h3>
+                    <div class="status waiting" id="opponentStatus">等待玩家加入...</div>
+                </div>
+            </div>
+
+            <div id="startGameBtn" style="display: none;">
+                <button class="action-btn" onclick="startGame()">開始遊戲！</button>
+            </div>
+        </div>
+
+        <!-- 遊戲畫面 -->
+        <div class="game-screen" id="gameScreen">
+            <button class="back-btn" onclick="backToLobby()">← 返回等候室</button>
+
+            <div class="player-info">
+                <div class="player-card you">
+                    <h3>你</h3>
+                    <div class="score-number" id="yourScore">0</div>
+                </div>
+                <div class="player-card opponent">
+                    <h3>對手</h3>
+                    <div class="score-number" id="opponentScore">0</div>
+                </div>
+            </div>
+
+            <div id="gameStatus" class="status playing">選擇你的武器！</div>
+
+            <div class="choices" id="gameChoices">
+                <button class="choice-btn" onclick="makeChoice('rock')">
+                    <span class="choice-emoji">🪨</span>
+                    <span class="choice-name">石頭</span>
+                </button>
+                <button class="choice-btn" onclick="makeChoice('paper')">
+                    <span class="choice-emoji">📄</span>
+                    <span class="choice-name">布</span>
+                </button>
+                <button class="choice-btn" onclick="makeChoice('scissors')">
+                    <span class="choice-emoji">✂️</span>
+                    <span class="choice-name">剪刀</span>
+                </button>
+                <button class="choice-btn" onclick="makeChoice('lizard')">
+                    <span class="choice-emoji">🦎</span>
+                    <span class="choice-name">蜥蜴</span>
+                </button>
+                <button class="choice-btn" onclick="makeChoice('spock')">
+                    <span class="choice-emoji">🖖</span>
+                    <span class="choice-name">史波克</span>
+                </button>
+            </div>
+
+            <div id="gameResult"></div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, set, get, onValue, push, remove, update } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        // Firebase 配置 - 請替換為您的 Firebase 專案配置
+        const firebaseConfig = {
+            apiKey: "demo-api-key",
+            authDomain: "demo.firebaseapp.com",
+            databaseURL: "https://demo-default-rtdb.firebaseio.com/",
+            projectId: "demo",
+            storageBucket: "demo.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "demo-app-id"
+        };
+
+        // 初始化 Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // 遊戲邏輯
+        const choices = {
+            rock: { name: '石頭', emoji: '🪨', beats: ['scissors', 'lizard'] },
+            paper: { name: '布', emoji: '📄', beats: ['rock', 'spock'] },
+            scissors: { name: '剪刀', emoji: '✂️', beats: ['paper', 'lizard'] },
+            lizard: { name: '蜥蜴', emoji: '🦎', beats: ['paper', 'spock'] },
+            spock: { name: '史波克', emoji: '🖖', beats: ['rock', 'scissors'] }
+        };
+
+        const winExplanations = {
+            'rock-scissors': '石頭碰碎剪刀',
+            'rock-lizard': '石頭碰碎蜥蜴',
+            'paper-rock': '布包住石頭',
+            'paper-spock': '布反駁史波克',
+            'scissors-paper': '剪刀剪斷布',
+            'scissors-lizard': '剪刀砍斷蜥蜴',
+            'lizard-paper': '蜥蜴吃掉布',
+            'lizard-spock': '蜥蜴毒死史波克',
+            'spock-rock': '史波克蒸發石頭',
+            'spock-scissors': '史波克砸壞剪刀'
+        };
+
+        let currentRoom = null;
+        let playerId = Math.random().toString(36).substr(2, 9);
+        let isHost = false;
+        let gameState = {
+            yourScore: 0,
+            opponentScore: 0
+        };
+
+        // 全域函數
+        window.createRoom = createRoom;
+        window.showJoinRoom = showJoinRoom;
+        window.joinRoom = joinRoom;
+        window.startGame = startGame;
+        window.makeChoice = makeChoice;
+        window.backToMenu = backToMenu;
+        window.backToLobby = backToLobby;
+        window.copyRoomCode = copyRoomCode;
+
+        function generateRoomCode() {
+            return Math.random().toString(36).substr(2, 6).toUpperCase();
+        }
+
+        async function createRoom() {
+            const roomCode = generateRoomCode();
+            currentRoom = roomCode;
+            isHost = true;
+
+            const roomRef = ref(database, `rooms/${roomCode}`);
+            await set(roomRef, {
+                host: playerId,
+                players: {
+                    [playerId]: {
+                        ready: true,
+                        score: 0
+                    }
+                },
+                gameState: 'waiting',
+                createdAt: Date.now()
+            });
+
+            document.getElementById('roomCode').textContent = roomCode;
+            showScreen('lobbyScreen');
+            
+            // 監聽房間變化
+            onValue(roomRef, (snapshot) => {
+                const roomData = snapshot.val();
+                if (roomData) {
+                    updateLobby(roomData);
+                }
+            });
+        }
+
+        function showJoinRoom() {
+            document.getElementById('joinRoomDiv').style.display = 'block';
+        }
+
+        async function joinRoom() {
+            const roomCode = document.getElementById('roomCodeInput').value.toUpperCase();
+            if (!roomCode) return;
+
+            const roomRef = ref(database, `rooms/${roomCode}`);
+            const snapshot = await get(roomRef);
+            
+            if (!snapshot.exists()) {
+                alert('房間不存在！');
+                return;
+            }
+
+            const roomData = snapshot.val();
+            const playerCount = Object.keys(roomData.players || {}).length;
+            
+            if (playerCount >= 2) {
+                alert('房間已滿！');
+                return;
+            }
+
+            currentRoom = roomCode;
+            isHost = false;
+
+            await update(ref(database, `rooms/${roomCode}/players/${playerId}`), {
+                ready: true,
+                score: 0
+            });
+
+            document.getElementById('roomCode').textContent = roomCode;
+            showScreen('lobbyScreen');
+
+            // 監聽房間變化
+            onValue(roomRef, (snapshot) => {
+                const roomData = snapshot.val();
+                if (roomData) {
+                    updateLobby(roomData);
+                    if (roomData.gameState === 'playing') {
+                        updateGameScreen(roomData);
+                    }
+                }
+            });
+        }
+
+        function updateLobby(roomData) {
+            const players = Object.keys(roomData.players || {});
+            const opponentStatus = document.getElementById('opponentStatus');
+            const startBtn = document.getElementById('startGameBtn');
+
+            if (players.length === 2) {
+                opponentStatus.textContent = '準備就緒';
+                opponentStatus.className = 'status ready';
+                if (isHost) {
+                    startBtn.style.display = 'block';
+                }
+            } else {
+                opponentStatus.textContent = '等待玩家加入...';
+                opponentStatus.className = 'status waiting';
+                startBtn.style.display = 'none';
+            }
+        }
+
+        async function startGame() {
+            if (!isHost) return;
+
+            await update(ref(database, `rooms/${currentRoom}`), {
+                gameState: 'playing',
+                round: {
+                    choices: {},
+                    result: null
+                }
+            });
+
+            showScreen('gameScreen');
+        }
+
+        async function makeChoice(choice) {
+            const choiceBtns = document.querySelectorAll('.choice-btn');
+            choiceBtns.forEach(btn => btn.disabled = true);
+
+            await update(ref(database, `rooms/${currentRoom}/round/choices/${playerId}`), choice);
+
+            document.getElementById('gameStatus').textContent = '等待對手選擇...';
+            document.getElementById('gameStatus').className = 'status waiting';
+        }
+
+        function updateGameScreen(roomData) {
+            if (roomData.gameState !== 'playing') {
+                showScreen('gameScreen');
+                return;
+            }
+
+            const players = Object.keys(roomData.players);
+            const opponent = players.find(p => p !== playerId);
+            
+            // 更新分數
+            document.getElementById('yourScore').textContent = roomData.players[playerId]?.score || 0;
+            document.getElementById('opponentScore').textContent = roomData.players[opponent]?.score || 0;
+
+            // 檢查回合結果
+            const choices = roomData.round?.choices || {};
+            if (Object.keys(choices).length === 2) {
+                showRoundResult(choices, players, opponent, roomData);
+            }
+        }
+
+        function showRoundResult(choices, players, opponent, roomData) {
+            const yourChoice = choices[playerId];
+            const opponentChoice = choices[opponent];
+            
+            const result = determineWinner(yourChoice, opponentChoice);
+            
+            const resultDiv = document.getElementById('gameResult');
+            
+            const roundDisplay = `
+                <div class="round-display">
+                    <div class="player-choice">
+                        <div class="choice-label">你的選擇</div>
+                        <div class="choice-display">${choices[yourChoice].emoji}</div>
+                        <div>${choices[yourChoice].name}</div>
+                    </div>
+                    <div class="vs">VS</div>
+                    <div class="opponent-choice">
+                        <div class="choice-label">對手選擇</div>
+                        <div class="choice-display">${choices[opponentChoice].emoji}</div>
+                        <div>${choices[opponentChoice].name}</div>
+                    </div>
+                </div>
+            `;
+            
+            let resultClass = '';
+            let resultText = '';
+            
+            if (result === 'win') {
+                resultClass = 'win';
+                resultText = '你贏了！';
+            } else if (result === 'lose') {
+                resultClass = 'lose';
+                resultText = '你輸了！';
+            } else {
+                resultClass = 'tie';
+                resultText = '平手！';
+            }
+            
+            const explanation = getExplanation(yourChoice, opponentChoice, result);
+            
+            resultDiv.innerHTML = `
+                ${roundDisplay}
+                <div class="result-text ${resultClass}">${resultText}</div>
+                <div class="explanation">${explanation}</div>
+            `;
+
+            // 重置按鈕
+            setTimeout(() => {
+                const choiceBtns = document.querySelectorAll('.choice-btn');
+                choiceBtns.forEach(btn => btn.disabled = false);
+                document.getElementById('gameStatus').textContent = '選擇你的武器！';
+                document.getElementById('gameStatus').className = 'status playing';
+                
+                // 清除回合數據
+                if (isHost) {
+                    update(ref(database, `rooms/${currentRoom}/round`), {
+                        choices: {},
+                        result: null
+                    });
+                }
+            }, 3000);
+        }
+
+        function determineWinner(choice1, choice2) {
+            if (choice1 === choice2) return 'tie';
+            if (choices[choice1].beats.includes(choice2)) return 'win';
+            return 'lose';
+        }
+
+        function getExplanation(yourChoice, opponentChoice, result) {
+            if (result === 'tie') return '平手！';
+            
+            if (result === 'win') {
+                const key = `${yourChoice}-${opponentChoice}`;
+                return winExplanations[key] || '你贏了！';
+            } else {
+                const key = `${opponentChoice}-${yourChoice}`;
+                return winExplanations[key] || '你輸了！';
+            }
+        }
+
+        function showScreen(screenId) {
+            const screens = ['menuScreen', 'lobbyScreen', 'gameScreen'];
+            screens.forEach(screen => {
+                document.getElementById(screen).classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function backToMenu() {
+            if (currentRoom) {
+                remove(ref(database, `rooms/${currentRoom}/players/${playerId}`));
+                currentRoom = null;
+            }
+            showScreen('menuScreen');
+            document.getElementById('joinRoomDiv').style.display = 'none';
+            document.getElementById('roomCodeInput').value = '';
+        }
+
+        function backToLobby() {
+            showScreen('lobbyScreen');
+        }
+
+        function copyRoomCode() {
+            const roomCode = document.getElementById('roomCode').textContent;
+            navigator.clipboard.writeText(roomCode).then(() => {
+                alert('房間代碼已複製！');
+            });
+        }
+    </script>
+</body>
+</html> 

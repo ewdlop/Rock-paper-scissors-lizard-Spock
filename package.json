@@ -1,0 +1,37 @@
+{
+  "name": "rock-paper-scissors-lizard-spock",
+  "version": "1.0.0",
+  "description": "Real-time Rock Paper Scissors Lizard Spock game with Next.js and Socket.IO",
+  "private": true,
+  "scripts": {
+    "dev": "node custom-server.js",
+    "build": "next build",
+    "start": "NODE_ENV=production node custom-server.js",
+    "lint": "next lint",
+    "dev:server": "nodemon server.js",
+    "dev:separate": "next dev"
+  },
+  "dependencies": {
+    "next": "14.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "socket.io": "^4.7.2",
+    "socket.io-client": "^4.7.2",
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.0",
+    "@types/react": "^18.2.25",
+    "@types/react-dom": "^18.2.10",
+    "@types/uuid": "^9.0.5",
+    "eslint": "^8.51.0",
+    "eslint-config-next": "14.0.0",
+    "nodemon": "^3.0.1",
+    "typescript": "^5.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+} 
