@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { Player } from '../page'
+import { Player } from '../lib/game-types'
 
 interface GameLobbyProps {
   roomCode: string

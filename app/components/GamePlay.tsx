@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { Player, RoundResult, choices } from '../page'
+import { Player, RoundResult, choices } from '../lib/game-types'
 
 interface GamePlayProps {
   players: Player[]
